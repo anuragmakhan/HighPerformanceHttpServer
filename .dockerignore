@@ -1,0 +1,7 @@
+# Ignore build directories and git
+build/
+.git/
+.vscode/
+
+# Ignore artifact files from host
+*.md
