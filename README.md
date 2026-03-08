@@ -10,10 +10,10 @@ A from-scratch, high-performance static HTTP server written in C++17. Designed t
 - **Memory Optimization**: Initial `BufferPool` structure implemented to minimize dynamic allocations per request.
 
 ## Architecture
-See [Architecture Overview](architecture.md) for a detailed breakdown of the execution flow.
+See [Architecture Overview](docs/architecture.md) for a detailed breakdown of the execution flow.
 
 ## Benchmarks
-See [Benchmarking Results](benchmarks.md) for load testing comparisons and theoretical limits.
+See [Benchmarking Results](docs/benchmarks.md) for load testing comparisons and theoretical limits.
 
 ## Building and Running (Docker / Windows)
 Since `epoll` and `sendfile` are Linux-native primitives, the project is configured to build seamlessly via Docker.

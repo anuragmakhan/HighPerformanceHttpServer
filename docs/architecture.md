@@ -7,25 +7,43 @@ The core architecture follows the **Reactor Pattern**, decoupled from an arbitra
 ## Architecture Diagram
 ```mermaid
 graph TD
-    Client((Client)) <-->|HTTP| Epoll{epoll_wait}
+    classDef client fill:#e1bee7,stroke:#8e24aa,stroke-width:2px,color:#000;
+    classDef core fill:#bbdefb,stroke:#1976d2,stroke-width:2px,color:#000;
+    classDef worker fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000;
+    classDef data fill:#ffecb3,stroke:#ffa000,stroke-width:2px,color:#000;
+
+    Client((Client)):::client
     
-    subgraph Main Thread Reactor
-        Epoll -->|EPOLLIN| ReadBuffer[Read to Buffer]
-        ReadBuffer -->|Complete Request| Queue[(Task Queue)]
-        WriteBuffer[Write String/Headers] -->|EPOLLOUT| Epoll
-        SendFile[sendfile OS DMA] -->|Zero-Copy| Epoll
+    subgraph Reactor [Main Thread Reactor]
+        Epoll(epoll_wait):::core
+        Read[Read Request]:::core
+        Write[Write Headers]:::core
+        DMA[sendfile]:::core
     end
     
-    subgraph Thread Pool Workers
-        Queue -->|Consume| Worker1[Worker Thread]
-        Queue -->|Consume| Worker2[Worker Thread]
-        
-        Worker1 -->|Parse| HttpParser[HTTP Parser]
-        Worker1 -->|Route| FileSystem[Local www/ FS]
-        Worker1 -->|Arm EPOLLOUT| WriteBuffer
+    subgraph Workers [Thread Pool]
+        Queue[[Task Queue]]:::data
+        Worker[Worker Thread]:::worker
+        Parser[HTTP Parser]:::worker
+        FS[(www/ Directory)]:::data
     end
+
+    Client -->|HTTP Request| Epoll
     
-    FileSystem -.->|file_fd| SendFile
+    Epoll -->|1. EPOLLIN| Read
+    Read -->|2. Push Task| Queue
+    Queue -->|3. Pop Task| Worker
+    
+    Worker -->|4. Parse| Parser
+    Worker -->|5. Route| FS
+    Worker -->|6. Set EPOLLOUT| Write
+    
+    FS -.->|file_fd| DMA
+    
+    Write -->|7. Send Headers| Epoll
+    DMA -->|8. Zero-Copy Body| Epoll
+    
+    Epoll -->|9. HTTP Response| Client
 ```
 
 ## End-to-End Request Lifecycle
