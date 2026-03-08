@@ -13,6 +13,10 @@ include_directories(include)
 add_executable(http_server
     src/main.cpp
     src/server.cpp
+    src/connection.cpp
+    src/http_parser.cpp
+    src/thread_pool.cpp
+    src/buffer_pool.cpp
 )
 
 # Optional threading, though needed later
